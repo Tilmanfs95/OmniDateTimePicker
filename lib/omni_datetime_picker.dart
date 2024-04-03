@@ -282,7 +282,6 @@ Future<List<DateTime>?> showOmniDateTimeRangePicker({
           selectableDayPredicate: selectableDayPredicate,
         ),
       );
-      );
     },
   );
 }
