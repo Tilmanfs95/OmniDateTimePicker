@@ -83,6 +83,8 @@ class CalendarDatePicker extends StatefulWidget {
     this.onDisplayedMonthChanged,
     this.initialCalendarMode = DatePickerMode.day,
     this.selectableDayPredicate,
+    this.weekPicker,
+    this.monthPicker,
   })  : initialDate = DateUtils.dateOnly(initialDate),
         firstDate = DateUtils.dateOnly(firstDate),
         lastDate = DateUtils.dateOnly(lastDate),
@@ -129,6 +131,13 @@ class CalendarDatePicker extends StatefulWidget {
 
   /// Function to provide full control over which dates in the calendar can be selected.
   final SelectableDayPredicate? selectableDayPredicate;
+
+
+  final bool? weekPicker;
+
+
+  final bool? monthPicker;
+
 
   @override
   State<CalendarDatePicker> createState() => _CalendarDatePickerState();
@@ -225,6 +234,16 @@ class _CalendarDatePickerState extends State<CalendarDatePicker> {
     });
   }
 
+  void _handleRealMonthChanged(DateTime value) {
+    _vibrate();
+    setState(() {
+      _selectedDate = DateTime(value.year, value.month, 1);
+      widget.onDateChanged(_selectedDate);
+
+      _handleMonthChanged(DateTime(value.year, value.month, 1)); /// sicher ??
+    });
+  }
+
   void _handleYearChanged(DateTime value) {
     _vibrate();
 
@@ -233,7 +252,7 @@ class _CalendarDatePickerState extends State<CalendarDatePicker> {
     } else if (value.isAfter(widget.lastDate)) {
       value = widget.lastDate;
     }
-
+    //print("YEAR CHANGED $value");
     setState(() {
       _mode = DatePickerMode.day;
       _handleMonthChanged(value);
@@ -251,7 +270,7 @@ class _CalendarDatePickerState extends State<CalendarDatePicker> {
   Widget _buildPicker() {
     switch (_mode) {
       case DatePickerMode.day:
-        return _MonthPicker(
+        return widget.monthPicker==null||widget.monthPicker==false?_MonthPicker(
           key: _monthPickerKey,
           initialMonth: _currentDisplayedMonthDate,
           currentDate: widget.currentDate,
@@ -261,6 +280,14 @@ class _CalendarDatePickerState extends State<CalendarDatePicker> {
           onChanged: _handleDayChanged,
           onDisplayedMonthChanged: _handleMonthChanged,
           selectableDayPredicate: widget.selectableDayPredicate,
+          selectWholeWeek: widget.weekPicker,
+        ):RealMonthPicker(
+            firstDate: widget.firstDate,
+            lastDate: widget.lastDate,
+            displayedYear: _currentDisplayedMonthDate,
+            selectedDate: _selectedDate,
+            currentDate: widget.currentDate,
+            onChanged:   _handleRealMonthChanged,
         );
       case DatePickerMode.year:
         return Padding(
@@ -292,7 +319,7 @@ class _CalendarDatePickerState extends State<CalendarDatePicker> {
         // Put the mode toggle button on top so that it won't be covered up by the _MonthPicker
         _DatePickerModeToggleButton(
           mode: _mode,
-          title: _localizations.formatMonthYear(_currentDisplayedMonthDate),
+          title: widget.monthPicker!=null&&widget.monthPicker==true?_localizations.formatYear(_currentDisplayedMonthDate):_localizations.formatMonthYear(_currentDisplayedMonthDate),
           onTitlePressed: () {
             // Toggle the day/year mode.
             _handleModeChanged(_mode == DatePickerMode.day
@@ -434,6 +461,7 @@ class _MonthPicker extends StatefulWidget {
     required this.onChanged,
     required this.onDisplayedMonthChanged,
     this.selectableDayPredicate,
+    this.selectWholeWeek,
   })  : assert(!firstDate.isAfter(lastDate)),
         assert(!selectedDate.isBefore(firstDate)),
         assert(!selectedDate.isAfter(lastDate));
@@ -469,6 +497,8 @@ class _MonthPicker extends StatefulWidget {
 
   /// Optional user supplied predicate function to customize selectable days.
   final SelectableDayPredicate? selectableDayPredicate;
+
+  final bool? selectWholeWeek;
 
   @override
   _MonthPickerState createState() => _MonthPickerState();
@@ -743,6 +773,7 @@ class _MonthPickerState extends State<_MonthPicker> {
       lastDate: widget.lastDate,
       displayedMonth: month,
       selectableDayPredicate: widget.selectableDayPredicate,
+      selectWholeWeek: widget.selectWholeWeek,
     );
   }
 
@@ -844,7 +875,7 @@ class _DayPicker extends StatefulWidget {
     required this.lastDate,
     required this.selectedDate,
     required this.onChanged,
-    this.selectableDayPredicate,
+    this.selectableDayPredicate, this.selectWholeWeek,
   })  : assert(!firstDate.isAfter(lastDate)),
         assert(!selectedDate.isBefore(firstDate)),
         assert(!selectedDate.isAfter(lastDate));
@@ -875,6 +906,8 @@ class _DayPicker extends StatefulWidget {
 
   /// Optional user supplied predicate function to customize selectable days.
   final SelectableDayPredicate? selectableDayPredicate;
+
+  final bool? selectWholeWeek;
 
   @override
   _DayPickerState createState() => _DayPickerState();
@@ -947,6 +980,13 @@ class _DayPickerState extends State<_DayPicker> {
     return result;
   }
 
+  bool isSameWeek(DateTime date1, DateTime date2, MaterialLocalizations localizations) {
+    final firstDayOfWeekIndex = localizations.firstDayOfWeekIndex;
+    final firstDayOfWeek = date1.subtract(Duration(days: (date1.weekday - firstDayOfWeekIndex + 7) % 7));
+    final lastDayOfWeek = firstDayOfWeek.add(const Duration(days: 6));
+    return (date2.isAfter(firstDayOfWeek) || date2.isAtSameMomentAs(firstDayOfWeek)) && (date2.isBefore(lastDayOfWeek) || date2.isAtSameMomentAs(lastDayOfWeek));
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -984,7 +1024,10 @@ class _DayPickerState extends State<_DayPicker> {
             (widget.selectableDayPredicate != null &&
                 !widget.selectableDayPredicate!(dayToBuild));
         final bool isSelectedDay =
-            DateUtils.isSameDay(widget.selectedDate, dayToBuild);
+            DateUtils.isSameDay(widget.selectedDate, dayToBuild) ||
+                (widget.selectWholeWeek != null && widget.selectWholeWeek == true &&
+                    isSameWeek(widget.selectedDate, dayToBuild, localizations) &&
+                    !dayToBuild.isAfter(widget.lastDate));
         final bool isToday =
             DateUtils.isSameDay(widget.currentDate, dayToBuild);
 
@@ -1306,3 +1349,116 @@ class _YearPickerGridDelegate extends SliverGridDelegate {
 
 const _YearPickerGridDelegate _yearPickerGridDelegate =
     _YearPickerGridDelegate();
+
+
+class RealMonthPicker extends StatefulWidget {
+  const RealMonthPicker({super.key, required this.selectedDate, required this.onChanged, required this.firstDate, required this.lastDate, required this.displayedYear, required this.currentDate});
+  final DateTime firstDate;
+  final DateTime lastDate;
+  final DateTime displayedYear;
+  final DateTime selectedDate;
+  final DateTime currentDate;
+  final ValueChanged<DateTime> onChanged;
+
+
+  @override
+  State<RealMonthPicker> createState() => _RealMonthPickerState();
+}
+
+class _RealMonthPickerState extends State<RealMonthPicker> {
+  late MaterialLocalizations _localizations;
+
+  Widget _buildMonthItem(BuildContext context, int index) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    final int month = index + 1;
+    final bool isSelected = (month == widget.selectedDate.month && widget.selectedDate.year == widget.displayedYear.year);
+    final bool isDisabled = (month < widget.firstDate.month && widget.displayedYear.year <= widget.firstDate.year) ||
+        (month > widget.lastDate.month && widget.displayedYear.year >= widget.lastDate.year);
+    final bool isCurrentMonth = (month == widget.currentDate.month && widget.currentDate.year == widget.displayedYear.year);
+    const double decorationHeight = 36.0;
+    const double decorationWidth = 86.0;
+
+    final Color textColor;
+    if (isSelected) {
+      textColor = colorScheme.onPrimary;
+    } else if (isDisabled) {
+      textColor = colorScheme.onSurface.withOpacity(0.38);
+    } else {
+      textColor = colorScheme.onSurface.withOpacity(0.87);
+    }
+    final TextStyle? itemStyle = textTheme.bodySmall?.apply(color: textColor);
+
+    BoxDecoration? decoration;
+    if (isSelected) {
+      decoration = BoxDecoration(
+        color: colorScheme.primary,
+        borderRadius: BorderRadius.circular(decorationHeight / 2),
+      );
+    } else if (isCurrentMonth && !isDisabled) {
+      decoration = BoxDecoration(
+        border: Border.all(
+          color: colorScheme.primary,
+        ),
+        borderRadius: BorderRadius.circular(decorationHeight / 2),
+      );
+    }
+
+    String yearString = _localizations.formatMonthYear(DateTime(widget.selectedDate.year, month,));
+    String monthString = yearString.substring(0, yearString.length - 5);
+
+    Widget monthItem = Center(
+      child: Container(
+        decoration: decoration,
+        height: decorationHeight,
+        width: decorationWidth,
+        child: Center(
+          child: Semantics(
+            selected: isSelected,
+            button: true,
+            child: Text(monthString, style: itemStyle),
+          ),
+        ),
+      ),
+    );
+
+    if (isDisabled) {
+      monthItem = ExcludeSemantics(
+        child: monthItem,
+      );
+    } else {
+    monthItem = InkWell(
+      splashColor: Colors.transparent,
+      key: ValueKey<int>(month),
+      onTap: () => widget.onChanged(DateTime(widget.displayedYear.year, month, 1)),
+      child: monthItem,
+    );
+    }
+
+    return monthItem;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _localizations = MaterialLocalizations.of(context);
+    assert(debugCheckHasMaterial(context));
+    return Column(
+      children: <Widget>[
+        const SizedBox(height: _subHeaderHeight + 10),
+        Expanded(
+          child: GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: 1.7,
+            ),
+            itemBuilder: _buildMonthItem,
+            itemCount: 12,
+            padding: const EdgeInsets.symmetric(horizontal: _yearPickerPadding),
+          ),
+        ),
+      ],
+    );
+  }
+}

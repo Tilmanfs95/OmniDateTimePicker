@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  DateTime? dateTime = await showOmniDateTimePicker(
+                  await showOmniDateTimePicker(
                     context: context,
                     initialDate: DateTime.now(),
                     firstDate:
@@ -60,14 +60,13 @@ class MyApp extends StatelessWidget {
                     },
                   );
 
-                  print("dateTime: $dateTime");
+                  //print("dateTime: $dateTime");
                 },
                 child: const Text("Show DateTime Picker"),
               ),
               ElevatedButton(
                 onPressed: () async {
-                  List<DateTime>? dateTimeList =
-                      await showOmniDateTimeRangePicker(
+                  await showOmniDateTimeRangePicker(
                     context: context,
                     startInitialDate: DateTime.now(),
                     startFirstDate:
@@ -114,8 +113,8 @@ class MyApp extends StatelessWidget {
                     },
                   );
 
-                  print("Start dateTime: ${dateTimeList?[0]}");
-                  print("End dateTime: ${dateTimeList?[1]}");
+                  //print("Start dateTime: ${dateTimeList?[0]}");
+                  //print("End dateTime: ${dateTimeList?[1]}");
                 },
                 child: const Text("Show DateTime Range Picker"),
               ),

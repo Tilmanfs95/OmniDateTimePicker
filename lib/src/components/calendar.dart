@@ -8,13 +8,17 @@ class Calendar extends StatelessWidget {
       this.firstDate,
       this.lastDate,
       required this.onDateChanged,
-      this.selectableDayPredicate});
+      this.selectableDayPredicate,
+      this.weekPicker,
+      this.monthPicker});
 
   final DateTime? initialDate;
   final DateTime? firstDate;
   final DateTime? lastDate;
   final void Function(DateTime) onDateChanged;
   final bool Function(DateTime)? selectableDayPredicate;
+  final bool? weekPicker;
+  final bool? monthPicker;
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +32,8 @@ class Calendar extends StatelessWidget {
       lastDate: lastDate ?? defaultLastDate,
       onDateChanged: onDateChanged,
       selectableDayPredicate: selectableDayPredicate,
+      weekPicker: weekPicker,
+      monthPicker: monthPicker,
     );
   }
 }

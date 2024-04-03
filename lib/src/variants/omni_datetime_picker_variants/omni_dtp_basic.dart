@@ -18,6 +18,9 @@ class OmniDtpBasic extends StatelessWidget {
     this.constraints,
     this.type,
     this.selectableDayPredicate,
+    this.topText,
+    this.weekPicker,
+    this.monthPicker
   });
 
   final DateTime? initialDate;
@@ -31,6 +34,9 @@ class OmniDtpBasic extends StatelessWidget {
   final BoxConstraints? constraints;
   final OmniDateTimePickerType? type;
   final bool Function(DateTime)? selectableDayPredicate;
+  final Text? topText;
+  final bool? weekPicker;
+  final bool? monthPicker;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +54,10 @@ class OmniDtpBasic extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            topText!=null?Padding(
+              padding: const EdgeInsets.fromLTRB(20, 15, 20, 5),
+              child: topText!,
+            ):Container(),
             Calendar(
               initialDate: initialDate,
               firstDate: firstDate,
@@ -65,6 +75,8 @@ class OmniDtpBasic extends StatelessWidget {
                 selectedDateTime = tempDateTime;
               },
               selectableDayPredicate: selectableDayPredicate,
+              weekPicker: weekPicker,
+              monthPicker: monthPicker,
             ),
             if (type == OmniDateTimePickerType.dateAndTime)
               Padding(
@@ -93,10 +105,32 @@ class OmniDtpBasic extends StatelessWidget {
                 ),
               ),
             ButtonRow(onSavePressed: () {
-              Navigator.pop<DateTime>(
-                context,
-                selectedDateTime,
-              );
+              if (weekPicker != null && weekPicker == true) {
+                final firstDayOfWeekIndex = localizations.firstDayOfWeekIndex;
+                final firstDayOfWeek = selectedDateTime.subtract(Duration(
+                    days: (selectedDateTime.weekday - firstDayOfWeekIndex + 7) %
+                        7));
+                final lastDayOfWeek = firstDayOfWeek.add(
+                    const Duration(days: 6));
+                Navigator.pop<List<DateTime>>(
+                  context,
+                  [firstDayOfWeek, lastDayOfWeek],
+                );
+              } else if (monthPicker != null && monthPicker == true) {
+                final firstDayOfMonth = DateTime(
+                    selectedDateTime.year, selectedDateTime.month, 1);
+                final lastDayOfMonth = DateTime(
+                    selectedDateTime.year, selectedDateTime.month + 1, 0);
+                Navigator.pop<List<DateTime>>(
+                  context,
+                  [firstDayOfMonth, lastDayOfMonth],
+                );
+              } else {
+                Navigator.pop<DateTime>(
+                  context,
+                  selectedDateTime,
+                );
+              }
             }),
           ],
         ),

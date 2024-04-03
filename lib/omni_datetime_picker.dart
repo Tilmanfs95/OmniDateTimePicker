@@ -32,6 +32,7 @@ Future<DateTime?> showOmniDateTimePicker({
   bool? barrierDismissible,
   OmniDateTimePickerType type = OmniDateTimePickerType.dateAndTime,
   final bool Function(DateTime)? selectableDayPredicate,
+  Text? topText,
   ThemeData? theme,
 }) {
   return showGeneralDialog(
@@ -67,11 +68,152 @@ Future<DateTime?> showOmniDateTimePicker({
           borderRadius: borderRadius,
           constraints: constraints,
           selectableDayPredicate: selectableDayPredicate,
+          topText: topText,
         ),
       );
     },
   );
 }
+
+
+
+/// Show dialog of the [OmniDateTimePicker]
+///
+/// Returns a List<DateTime>
+/// with index 0 as startOfWeekDateTime
+/// and index 1 as endOfWeekDateTime
+///
+Future<List<DateTime>?> showOmniDateTimeWeekPicker({
+  required BuildContext context,
+  DateTime? initialDate,
+  DateTime? firstDate,
+  DateTime? lastDate,
+  //bool? is24HourMode,
+  //bool? isShowSeconds,
+  //int? minutesInterval,
+  //int? secondsInterval,
+  bool? isForce2Digits,
+  BorderRadiusGeometry? borderRadius,
+  BoxConstraints? constraints,
+  Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+  transitionBuilder,
+  Duration? transitionDuration,
+  bool? barrierDismissible,
+  //OmniDateTimePickerType type = OmniDateTimePickerType.dateAndTime,
+  //final bool Function(DateTime)? selectableDayPredicate,
+  Text? topText,
+  ThemeData? theme,
+}) {
+  return showGeneralDialog(
+    context: context,
+    transitionBuilder: transitionBuilder ??
+            (context, anim1, anim2, child) {
+          return FadeTransition(
+            opacity: anim1.drive(
+              Tween(
+                begin: 0,
+                end: 1,
+              ),
+            ),
+            child: child,
+          );
+        },
+    transitionDuration: transitionDuration ?? const Duration(milliseconds: 200),
+    barrierDismissible: barrierDismissible ?? true,
+    barrierLabel: 'OmniDateTimeWeekPicker',
+    pageBuilder: (BuildContext context, anim1, anim2) {
+      return Theme(
+        data: theme ?? Theme.of(context),
+        child: OmniDateTimePicker(
+          type: OmniDateTimePickerType.date,
+          initialDate: initialDate,
+          firstDate: firstDate,
+          lastDate: lastDate,
+          //is24HourMode: is24HourMode,
+          //isShowSeconds: isShowSeconds,
+          //minutesInterval: minutesInterval,
+          //secondsInterval: secondsInterval,
+          isForce2Digits: isForce2Digits,
+          borderRadius: borderRadius,
+          constraints: constraints,
+          //selectableDayPredicate: selectableDayPredicate,
+          topText: topText,
+          weekPicker: true,
+        ),
+      );
+    },
+  );
+}
+
+
+/// Show dialog of the [OmniDateTimePicker]
+///
+/// Returns a List<DateTime>
+/// with index 0 as startOfWeekDateTime
+/// and index 1 as endOfWeekDateTime
+///
+Future<List<DateTime>?> showOmniDateTimeMonthPicker({
+  required BuildContext context,
+  DateTime? initialDate,
+  DateTime? firstDate,
+  DateTime? lastDate,
+  //bool? is24HourMode,
+  //bool? isShowSeconds,
+  //int? minutesInterval,
+  //int? secondsInterval,
+  bool? isForce2Digits,
+  BorderRadiusGeometry? borderRadius,
+  BoxConstraints? constraints,
+  Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+  transitionBuilder,
+  Duration? transitionDuration,
+  bool? barrierDismissible,
+  //OmniDateTimePickerType type = OmniDateTimePickerType.dateAndTime,
+  //final bool Function(DateTime)? selectableDayPredicate,
+  Text? topText,
+  ThemeData? theme,
+}) {
+  return showGeneralDialog(
+    context: context,
+    transitionBuilder: transitionBuilder ??
+            (context, anim1, anim2, child) {
+          return FadeTransition(
+            opacity: anim1.drive(
+              Tween(
+                begin: 0,
+                end: 1,
+              ),
+            ),
+            child: child,
+          );
+        },
+    transitionDuration: transitionDuration ?? const Duration(milliseconds: 200),
+    barrierDismissible: barrierDismissible ?? true,
+    barrierLabel: 'OmniDateTimeMonthPicker',
+    pageBuilder: (BuildContext context, anim1, anim2) {
+      return Theme(
+        data: theme ?? Theme.of(context),
+        child: OmniDateTimePicker(
+          type: OmniDateTimePickerType.date,
+          initialDate: initialDate,
+          firstDate: firstDate,
+          lastDate: lastDate,
+          //is24HourMode: is24HourMode,
+          //isShowSeconds: isShowSeconds,
+          //minutesInterval: minutesInterval,
+          //secondsInterval: secondsInterval,
+          isForce2Digits: isForce2Digits,
+          borderRadius: borderRadius,
+          constraints: constraints,
+          //selectableDayPredicate: selectableDayPredicate,
+          topText: topText,
+          monthPicker: true,
+        ),
+      );
+    },
+  );
+}
+
 
 /// Show a dialog of the [OmniDateTimePicker]
 ///
@@ -139,6 +281,7 @@ Future<List<DateTime>?> showOmniDateTimeRangePicker({
           constraints: constraints,
           selectableDayPredicate: selectableDayPredicate,
         ),
+      );
       );
     },
   );
